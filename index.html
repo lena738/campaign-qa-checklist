@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>campaign-qa-checklist</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root,[data-theme="light"]{
+      --bg:#f7f6f2;--surface:#fbfbf9;--surface-2:#f1efe9;--line:#d8d3ca;--text:#28251d;--muted:#706d66;--primary:#01696f;--primary-2:#0c4e54;--success:#437a22;--warn:#964219;--error:#a12c7b;
+      --radius:18px;--radius-sm:12px;--shadow:0 12px 30px rgba(40,37,29,.08);--font:'Satoshi',system-ui,sans-serif;
+    }
+    [data-theme="dark"]{--bg:#171614;--surface:#1d1c1a;--surface-2:#262421;--line:#393631;--text:#ece9e2;--muted:#a19b90;--primary:#4f98a3;--primary-2:#7ab5bc;--success:#89bf62;--warn:#d18a63;--error:#db7db7;--shadow:0 14px 36px rgba(0,0,0,.35)}
+    *{box-sizing:border-box} body{margin:0;font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--surface-2));color:var(--text)}
+    button,input,select,textarea{font:inherit}
+    .wrap{max-width:1280px;margin:0 auto;padding:20px}
+    .top{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-2));display:grid;place-items:center;color:#fff;font-weight:700;box-shadow:var(--shadow)}
+    .sub{color:var(--muted);font-size:14px}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
+    .card{background:color-mix(in srgb, var(--surface) 86%, transparent);backdrop-filter: blur(10px);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panel{padding:18px}
+    .title{font-size:26px;line-height:1.05;margin:0 0 6px}
+    .section-title{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px}
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    .kpi{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+    .kpi b{display:block;font-size:28px;margin-top:8px}
+    .btn{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px;border-radius:999px;cursor:pointer}
+    .btn.primary{background:var(--primary);color:#fff;border-color:transparent}
+    .btn.ghost{background:transparent}
+    .stack{display:grid;gap:12px}
+    .check{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+    .check.done{border-color:color-mix(in srgb,var(--success) 45%, var(--line));background:color-mix(in srgb,var(--success) 8%, var(--surface))}
+    .check input[type="checkbox"]{width:20px;height:20px;margin-top:2px;accent-color:var(--primary)}
+    .chip{font-size:12px;padding:6px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    .danger{color:var(--error)} .warn{color:var(--warn)} .ok{color:var(--success)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+    .field, .select, textarea{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+    textarea{min-height:90px;resize:vertical}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .errors{display:grid;gap:10px}
+    .error-item{padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+    .bar{height:10px;border-radius:999px;background:var(--surface-2);overflow:hidden}.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-2));width:0}
+    .small{font-size:13px;color:var(--muted)}
+    .list{display:grid;gap:8px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:13px}
+    .right{display:grid;gap:18px}
+    .accordion{display:grid;gap:12px}
+    .group{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+    .group h3{margin:0 0 10px;font-size:18px}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .hidden{display:none}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}.kpis,.three,.two{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">QA</div>
+      <div>
+        <h1 class="title">Интерактивный чек‑лист запуска РК</h1>
+        <div class="sub">Проверка перед запуском + журнал ошибок для анализа промахов</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="themeBtn">Сменить тему</button>
+      <button class="btn" id="seedBtn">Заполнить демо</button>
+      <button class="btn" id="exportBtn">Скачать JSON</button>
+      <button class="btn primary" id="syncBtn">Отправить в Google Sheets</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <aside class="card panel">
+      <p class="section-title">Пульс процесса</p>
+      <div class="kpis">
+        <div class="kpi"><div class="small">Прогресс</div><b id="progressNum">0%</b></div>
+        <div class="kpi"><div class="small">Ошибок</div><b id="mistakesNum">0</b></div>
+        <div class="kpi"><div class="small">Риск</div><b id="riskNum">Низкий</b></div>
+      </div>
+      <div class="bar"><span id="progressBar"></span></div>
+      <div style="height:14px"></div>
+      <p class="section-title">Фокус</p>
+      <div class="list" id="focusList">
+        <div class="pill">Ссылки и UTM</div>
+        <div class="pill">Сегменты и naming</div>
+        <div class="pill">Second pair of eyes</div>
+        <div class="pill">Пост‑проверка 30–60 мин</div>
+        <div class="pill">Проверка ставки</div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="two">
+        <input class="field" id="focusInput" placeholder="Добавить пункт в фокус, например: Проверка ставки">
+        <button class="btn" id="addFocusBtn">Добавить в фокус</button>
+      </div>
+      <div style="height:18px"></div>
+      <p class="section-title">Мини‑ритуал</p>
+      <div class="small">1. Собери РК. 2. Пройди чек‑лист. 3. Зафиксируй ошибки. 4. Посмотри повторяемость и обнови процесс.</div>
+      <div style="height:18px"></div>
+      <p class="section-title">Повторяющиеся ошибки</p>
+      <div id="topIssues" class="small">Пока пусто</div>
+    </aside>
+
+    <main class="right">
+      <section class="card panel">
+        <div class="row"><p class="section-title">Карточка запуска</p><span class="chip">Обязательный блок перед стартом</span></div>
+        <div class="three">
+          <input class="field" id="campaignName" placeholder="Название РК">
+          <input class="field" id="segmentName" placeholder="Сегмент / аудитория">
+          <input class="field" id="landingUrl" placeholder="Посадочная ссылка">
+        </div>
+      </section>
+
+      <section class="card panel">
+        <div class="row"><p class="section-title">Интеграция с Google Sheets</p><span class="chip">Боевой режим</span></div>
+        <div>
+          <input class="field" id="appsScriptUrl" placeholder="Вставьте URL Google Apps Script Web App">
+        </div>
+        <div style="height:10px"></div>
+        <div class="small">Сайт отправляет 3 массива: launch, mistakes, focus. Вставьте URL опубликованного Apps Script и нажмите кнопку отправки выше.</div>
+        <div style="height:10px"></div>
+        <div id="syncStatus" class="small">Статус: не настроено</div>
+      </section>
+      <section class="card panel">
+        <div class="row"><p class="section-title">Чек‑лист</p><span class="chip">Отмечай только после фактической проверки</span></div>
+        <div class="two" style="margin-bottom:12px">
+          <select class="select" id="customGroup">
+            <option>Подготовка</option><option>Сегменты</option><option>Ссылки и UTM</option><option>Финальный QA</option><option>После запуска</option><option>Мои пункты</option>
+          </select>
+          <input class="field" id="customItemText" placeholder="Добавить свой пункт, например: Проверка ставки">
+        </div>
+        <button class="btn" id="addCustomItemBtn">Добавить свой пункт</button>
+        <div style="height:12px"></div>
+        <div class="accordion" id="checklist"></div>
+      </section>
+
+      <section class="card panel">
+        <div class="row"><p class="section-title">Журнал ошибок</p><span class="chip">Для анализа и коррекции процесса</span></div>
+        <div class="two">
+          <select class="select" id="errType">
+            <option>Ссылка</option><option>UTM</option><option>Сегмент</option><option>Нейминг</option><option>Бюджет</option><option>Креатив</option><option>Другое</option>
+          </select>
+          <select class="select" id="errStage">
+            <option>До запуска</option><option>Во время запуска</option><option>После запуска</option>
+          </select>
+        </div>
+        <div style="height:10px"></div>
+        <div class="two">
+          <select class="select" id="errSeverity">
+            <option>Низкая</option><option>Средняя</option><option>Высокая</option>
+          </select>
+          <input class="field" id="errRoot" placeholder="Причина: спешка / копирование / не перепроверила / путаница сегментов">
+        </div>
+        <div style="height:10px"></div>
+        <textarea id="errDesc" placeholder="Что именно пошло не так?"></textarea>
+        <div style="height:10px"></div>
+        <textarea id="errFix" placeholder="Как изменить процесс, чтобы это не повторилось?"></textarea>
+        <div style="height:12px"></div>
+        <button class="btn primary" id="addErrorBtn">Добавить ошибку</button>
+        <div style="height:14px"></div>
+        <div class="errors" id="errorsList"></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+const checklistData = [
+  {group:'Подготовка',items:[
+    'Цель РК и KPI подтверждены',
+    'Оффер и посадочная страница актуальны',
+    'Есть понимание, чем эта РК отличается от похожих запусков'
+  ]},
+  {group:'Сегменты',items:[
+    'Сегмент в названии РК указан явно',
+    'Сегменты не дублируют друг друга',
+    'Креатив и текст соответствуют именно этому сегменту'
+  ]},
+  {group:'Ссылки и UTM',items:[
+    'Проверила финальный URL вручную в браузере',
+    'UTM заполнены по шаблону и без опечаток',
+    'Редиректы не ломают UTM и ведут на нужную страницу'
+  ]},
+  {group:'Финальный QA',items:[
+    'Бюджет, даты и расписание верны',
+    'Тестовые сущности выключены',
+    'Есть second pair of eyes или самопроверка после паузы 5 минут'
+  ]},
+  {group:'После запуска',items:[
+    'Через 30–60 минут проверены клики и события',
+    'Зафиксированы замечания и аномалии'
+  ]}
+];
+const state={checks:{},errors:[],focus:['Ссылки и UTM','Сегменты и naming','Second pair of eyes','Пост‑проверка 30–60 мин','Проверка ставки'],customGroups:{'Мои пункты':['Проверка ставки']}};
+const checklistEl=document.getElementById('checklist');
+const focusListEl=document.getElementById('focusList');
+function getAllGroups(){ const base = checklistData.map(x=>({group:x.group,items:[...x.items]})); Object.entries(state.customGroups||{}).forEach(([group,items])=>{ const found=base.find(x=>x.group===group); if(found) found.items.push(...items); else base.push({group,items:[...items]}); }); return base; }
+function renderFocus(){ focusListEl.innerHTML=''; (state.focus||[]).forEach((item,idx)=>{ const d=document.createElement('div'); d.className='pill'; d.innerHTML=`${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">×</button>`; focusListEl.appendChild(d);}); focusListEl.querySelectorAll('[data-rmf]').forEach(b=>b.onclick=()=>{state.focus.splice(+b.dataset.rmf,1); save(); renderFocus();}); }
+function renderChecklist(){checklistEl.innerHTML=''; getAllGroups().forEach((g,gi)=>{const wrap=document.createElement('div'); wrap.className='group'; wrap.innerHTML=`<h3>${g.group}</h3><div class="stack"></div>`; const stack=wrap.querySelector('.stack'); g.items.forEach((text,ii)=>{const key=`${gi}-${ii}`; const row=document.createElement('label'); row.className='check'+(state.checks[key]?' done':''); row.innerHTML=`<input type="checkbox" ${state.checks[key]?'checked':''} data-key="${key}"><div><strong>${text}</strong><div class="small">Подтверждаю только после реальной проверки.</div></div><span class="chip">must</span>`; stack.appendChild(row);}); checklistEl.appendChild(wrap);});
+  checklistEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',e=>{state.checks[e.target.dataset.key]=e.target.checked; save(); renderChecklist(); updateDashboard();}));}
+function addError(item){state.errors.unshift(item); save(); renderErrors(); updateDashboard();}
+function renderErrors(){const el=document.getElementById('errorsList'); if(!state.errors.length){el.innerHTML='<div class="small">Пока ошибок нет. Это место важно: даже мелкие промахи сюда, чтобы потом увидеть паттерн.</div>'; return;} el.innerHTML=''; state.errors.forEach((e,idx)=>{const d=document.createElement('div'); d.className='error-item'; d.innerHTML=`<div class="row"><strong>${e.type}</strong><span class="chip">${e.stage}</span></div><div class="small ${e.severity==='Высокая'?'danger':e.severity==='Средняя'?'warn':'ok'}">Серьёзность: ${e.severity}</div><p>${e.desc}</p><div class="small">Причина: ${e.root||'—'}</div><div class="small">Коррекция процесса: ${e.fix||'—'}</div><div style="height:8px"></div><button class="btn ghost" data-del="${idx}">Удалить</button>`; el.appendChild(d);}); el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{state.errors.splice(+b.dataset.del,1); save(); renderErrors(); updateDashboard();});}
+function updateDashboard(){const total=getAllGroups().reduce((s,g)=>s+g.items.length,0); const done=Object.values(state.checks).filter(Boolean).length; const pct=Math.round(done/total*100)||0; document.getElementById('progressNum').textContent=pct+'%'; document.getElementById('progressBar').style.width=pct+'%'; document.getElementById('mistakesNum').textContent=state.errors.length; let risk='Низкий'; if(state.errors.some(e=>e.severity==='Высокая')) risk='Высокий'; else if(state.errors.length>=2) risk='Средний'; document.getElementById('riskNum').textContent=risk; const freq={}; state.errors.forEach(e=>freq[e.type]=(freq[e.type]||0)+1); const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3); document.getElementById('topIssues').innerHTML=top.length?top.map(([k,v])=>`<div>${k}: ${v}</div>`).join(''):'Пока пусто';}
+function save(){const payload={state,campaignName:campaignName.value,segmentName:segmentName.value,landingUrl:landingUrl.value,appsScriptUrl:appsScriptUrl?.value||''}; window.__appData=payload;}
+function load(){if(window.__seedLoaded) return; renderFocus(); renderChecklist(); renderErrors(); updateDashboard();}
+addFocusBtn.onclick=()=>{const v=focusInput.value.trim(); if(!v) return; state.focus.push(v); focusInput.value=''; save(); renderFocus();};
+addCustomItemBtn.onclick=()=>{const text=customItemText.value.trim(); const group=customGroup.value; if(!text) return; if(!state.customGroups[group]) state.customGroups[group]=[]; state.customGroups[group].push(text); customItemText.value=''; save(); renderChecklist(); updateDashboard();};
+addErrorBtn.onclick=()=>{const item={type:errType.value,stage:errStage.value,severity:errSeverity.value,root:errRoot.value.trim(),desc:errDesc.value.trim(),fix:errFix.value.trim()}; if(!item.desc){alert('Опиши ошибку'); return;} addError(item); errDesc.value=''; errFix.value=''; errRoot.value='';};
+seedBtn.onclick=()=>{campaignName.value='Meta | ретаргет корзина | -10% | видео'; segmentName.value='retarget_cart_7d'; landingUrl.value='https://example.com/sale'; state.checks={'0-0':true,'0-1':true,'1-0':true,'2-0':true}; state.errors=[{type:'Ссылка',stage:'До запуска',severity:'Высокая',root:'Скопировала URL из прошлой РК',desc:'Вела на старую посадочную страницу',fix:'Добавить обязательный клик‑тест ссылки перед запуском'},{type:'Сегмент',stage:'До запуска',severity:'Средняя',root:'Похожие названия групп',desc:'Перепутала сегменты с похожим форматом',fix:'Жёсткий naming: канал | сегмент | оффер | формат'}]; renderFocus(); renderChecklist(); renderErrors(); updateDashboard();};
+themeBtn.onclick=()=>{document.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark')};
+exportBtn.onclick=()=>{save(); const blob=new Blob([JSON.stringify(window.__appData,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='campaign-qa-log.json'; a.click(); URL.revokeObjectURL(a.href);};
+
+function buildPayload(){
+  save();
+  const now = new Date().toISOString();
+  const groups = getAllGroups();
+  const total = groups.reduce((s,g)=>s+g.items.length,0);
+  const done = Object.values(state.checks).filter(Boolean).length;
+  const progress = Math.round(done/total*100)||0;
+  let risk='Низкий';
+  if(state.errors.some(e=>e.severity==='Высокая')) risk='Высокий'; else if(state.errors.length>=2) risk='Средний';
+  const launch=[{
+    created_at: now,
+    campaign_name: campaignName.value || '',
+    segment_name: segmentName.value || '',
+    landing_url: landingUrl.value || '',
+    progress_pct: progress,
+    mistakes_count: state.errors.length,
+    risk_level: risk
+  }];
+  const mistakes = state.errors.map(e => ({
+    created_at: now,
+    campaign_name: campaignName.value || '',
+    type: e.type || '',
+    stage: e.stage || '',
+    severity: e.severity || '',
+    root_cause: e.root || '',
+    description: e.desc || '',
+    process_fix: e.fix || ''
+  }));
+  const focus = (state.focus || []).map(item => ({
+    created_at: now,
+    campaign_name: campaignName.value || '',
+    focus_item: item
+  }));
+  return {launch, mistakes, focus};
+}
+async function syncToSheets(){
+  const url = (appsScriptUrl.value || '').trim();
+  if(!url){ syncStatus.textContent='Статус: добавьте URL Apps Script'; return; }
+  syncStatus.textContent='Статус: отправка…';
+  try {
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(buildPayload())
+    });
+    const text = await res.text();
+    syncStatus.textContent='Статус: данные отправлены';
+    console.log(text);
+  } catch (e) {
+    syncStatus.textContent='Статус: ошибка отправки — проверьте URL и доступ Apps Script';
+    console.error(e);
+  }
+}
+syncBtn.onclick=syncToSheets;
+load();
+</script>
+</body>
+</html>
