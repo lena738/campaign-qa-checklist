@@ -248,26 +248,33 @@ function buildPayload(){
   }));
   return {launch, mistakes, focus};
 }
-function syncToSheets(){
+function syncToSheets() {
   const url = (appsScriptUrl.value || '').trim();
-  if(!url){ syncStatus.textContent='Статус: добавьте URL Apps Script'; return; }
-  if(!url.endsWith('/exec')){ syncStatus.textContent='Статус: URL должен заканчиваться на /exec'; return; }
-  syncStatus.textContent='Статус: отправка…';
+
+  if (!url) {
+    syncStatus.textContent = 'Статус: добавьте URL Apps Script';
+    return;
+  }
+
+  syncStatus.textContent = 'Статус: отправка…';
+
   try {
     const payload = encodeURIComponent(JSON.stringify(buildPayload()));
+    const separator = url.includes('?') ? '&' : '?';
+    const fullUrl = url + separator + 'payload=' + payload + '&t=' + Date.now();
+
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
-    iframe.name = 'gsheets_sync_' + Date.now();
+    iframe.src = fullUrl;
     document.body.appendChild(iframe);
 
-    iframe.src = url + '?payload=' + payload + '&t=' + Date.now();
+    setTimeout(function() {
+      document.body.removeChild(iframe);
+    }, 5000);
 
-    setTimeout(() => {
-      syncStatus.textContent='Статус: отправлено — проверьте строки в Google Таблице';
-      iframe.remove();
-    }, 1800);
+    syncStatus.textContent = 'Статус: отправлено — проверьте строки в Google Таблице';
   } catch (e) {
-    syncStatus.textContent='Статус: ошибка отправки — проверьте URL и данные';
+    syncStatus.textContent = 'Статус: ошибка подготовки данных';
     console.error(e);
   }
 }
