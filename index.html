@@ -198,21 +198,82 @@ const state={checks:{},errors:[],focus:['Ссылки и UTM','Сегменты 
 const checklistEl=document.getElementById('checklist');
 const focusListEl=document.getElementById('focusList');
 function getAllGroups(){ const base = checklistData.map(x=>({group:x.group,items:[...x.items]})); Object.entries(state.customGroups||{}).forEach(([group,items])=>{ const found=base.find(x=>x.group===group); if(found) found.items.push(...items); else base.push({group,items:[...items]}); }); return base; }
-function renderFocus(){ focusListEl.innerHTML=''; (state.focus||[]).forEach((item,idx)=>{ const d=document.createElement('div'); d.className='pill'; d.innerHTML=`${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">×</button>`; focusListEl.appendChild(d);}); focusListEl.querySelectorAll('[data-rmf]').forEach(b=>b.onclick=()=>{state.focus.splice(+b.dataset.rmf,1); save(); renderFocus();}); }
+function renderFocus() {
+  focusListEl.innerHTML = '';
+
+  (state.focus || []).forEach((item, idx) => {
+    const d = document.createElement('div');
+    d.className = 'pill';
+    d.innerHTML = `${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">×</button>`;
+    focusListEl.appendChild(d);
+  });
+
+  focusListEl.querySelectorAll('[data-rmf]').forEach(b => {
+    b.onclick = () => {
+      const removedItem = state.focus[+b.dataset.rmf];
+      const normalizedRemovedItem = String(removedItem).trim().toLowerCase();
+
+      state.focus = state.focus.filter(item => {
+        return String(item).trim().toLowerCase() !== normalizedRemovedItem;
+      });
+
+      if (!state.customGroups) {
+        state.customGroups = {};
+      }
+
+      if (!state.customGroups['Мои пункты']) {
+        state.customGroups['Мои пункты'] = [];
+      }
+
+      state.customGroups['Мои пункты'] = state.customGroups['Мои пункты'].filter(item => {
+        return String(item).trim().toLowerCase() !== normalizedRemovedItem;
+      });
+
+      save();
+      renderFocus();
+      renderChecklist();
+      updateDashboard();
+    };
+  });
+}
+
 function renderChecklist(){checklistEl.innerHTML=''; getAllGroups().forEach((g,gi)=>{const wrap=document.createElement('div'); wrap.className='group'; wrap.innerHTML=`<h3>${g.group}</h3><div class="stack"></div>`; const stack=wrap.querySelector('.stack'); g.items.forEach((text,ii)=>{const key=`${gi}-${ii}`; const row=document.createElement('label'); row.className='check'+(state.checks[key]?' done':''); row.innerHTML=`<input type="checkbox" ${state.checks[key]?'checked':''} data-key="${key}"><div><strong>${text}</strong><div class="small">Подтверждаю только после реальной проверки.</div></div><span class="chip">must</span>`; stack.appendChild(row);}); checklistEl.appendChild(wrap);});
   checklistEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',e=>{state.checks[e.target.dataset.key]=e.target.checked; save(); renderChecklist(); updateDashboard();}));}
+
 function addError(item){state.errors.unshift(item); save(); renderErrors(); updateDashboard();}
 function renderErrors(){const el=document.getElementById('errorsList'); if(!state.errors.length){el.innerHTML='<div class="small">Пока ошибок нет. Это место важно: даже мелкие промахи сюда, чтобы потом увидеть паттерн.</div>'; return;} el.innerHTML=''; state.errors.forEach((e,idx)=>{const d=document.createElement('div'); d.className='error-item'; d.innerHTML=`<div class="row"><strong>${e.type}</strong><span class="chip">${e.stage}</span></div><div class="small ${e.severity==='Высокая'?'danger':e.severity==='Средняя'?'warn':'ok'}">Серьёзность: ${e.severity}</div><p>${e.desc}</p><div class="small">Причина: ${e.root||'—'}</div><div class="small">Коррекция процесса: ${e.fix||'—'}</div><div style="height:8px"></div><button class="btn ghost" data-del="${idx}">Удалить</button>`; el.appendChild(d);}); el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{state.errors.splice(+b.dataset.del,1); save(); renderErrors(); updateDashboard();});}
 function updateDashboard(){const total=getAllGroups().reduce((s,g)=>s+g.items.length,0); const done=Object.values(state.checks).filter(Boolean).length; const pct=Math.round(done/total*100)||0; document.getElementById('progressNum').textContent=pct+'%'; document.getElementById('progressBar').style.width=pct+'%'; document.getElementById('mistakesNum').textContent=state.errors.length; let risk='Низкий'; if(state.errors.some(e=>e.severity==='Высокая')) risk='Высокий'; else if(state.errors.length>=2) risk='Средний'; document.getElementById('riskNum').textContent=risk; const freq={}; state.errors.forEach(e=>freq[e.type]=(freq[e.type]||0)+1); const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3); document.getElementById('topIssues').innerHTML=top.length?top.map(([k,v])=>`<div>${k}: ${v}</div>`).join(''):'Пока пусто';}
 function save(){const payload={state,campaignName:campaignName.value,segmentName:segmentName.value,landingUrl:landingUrl.value,appsScriptUrl:appsScriptUrl?.value||''}; window.__appData=payload;}
 function load(){if(window.__seedLoaded) return; renderFocus(); renderChecklist(); renderErrors(); updateDashboard();}
+
 addFocusBtn.onclick = () => {
   const v = focusInput.value.trim();
   if (!v) return;
 
-  if (!state.focus.includes(v)) {
+  const normalizedValue = v.toLowerCase();
+
+  if (!state.focus.some(item => String(item).trim().toLowerCase() === normalizedValue)) {
     state.focus.push(v);
   }
+
+  if (!state.customGroups) {
+    state.customGroups = {};
+  }
+
+  if (!state.customGroups['Мои пункты']) {
+    state.customGroups['Мои пункты'] = [];
+  }
+
+  if (!state.customGroups['Мои пункты'].some(item => String(item).trim().toLowerCase() === normalizedValue)) {
+    state.customGroups['Мои пункты'].push(v);
+  }
+
+  focusInput.value = '';
+  save();
+  renderFocus();
+  renderChecklist();
+  updateDashboard();
+};
 
   if (!state.customGroups['Мои пункты']) {
     state.customGroups['Мои пункты'] = [];
