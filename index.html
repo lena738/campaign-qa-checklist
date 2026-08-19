@@ -11,7 +11,8 @@
       --radius:18px;--radius-sm:12px;--shadow:0 12px 30px rgba(40,37,29,.08);--font:'Satoshi',system-ui,sans-serif;
     }
     [data-theme="dark"]{--bg:#171614;--surface:#1d1c1a;--surface-2:#262421;--line:#393631;--text:#ece9e2;--muted:#a19b90;--primary:#4f98a3;--primary-2:#7ab5bc;--success:#89bf62;--warn:#d18a63;--error:#db7db7;--shadow:0 14px 36px rgba(0,0,0,.35)}
-    *{box-sizing:border-box} body{margin:0;font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--surface-2));color:var(--text)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--surface-2));color:var(--text)}
     button,input,select,textarea{font:inherit}
     .wrap{max-width:1280px;margin:0 auto;padding:20px}
     .top{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
@@ -52,7 +53,6 @@
     .group h3{margin:0 0 10px;font-size:18px}
     .muted{color:var(--muted)}
     .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .hidden{display:none}
     @media (max-width:980px){.grid{grid-template-columns:1fr}.kpis,.three,.two{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
   </style>
 </head>
@@ -62,7 +62,7 @@
     <div class="brand">
       <div class="logo">QA</div>
       <div>
-        <h1 class="title">Интерактивный чек‑лист запуска РК</h1>
+        <h1 class="title">Интерактивный чек-лист запуска РК</h1>
         <div class="sub">Проверка перед запуском + журнал ошибок для анализа промахов</div>
       </div>
     </div>
@@ -85,21 +85,15 @@
       <div class="bar"><span id="progressBar"></span></div>
       <div style="height:14px"></div>
       <p class="section-title">Фокус</p>
-      <div class="list" id="focusList">
-        <div class="pill">Ссылки и UTM</div>
-        <div class="pill">Сегменты и naming</div>
-        <div class="pill">Second pair of eyes</div>
-        <div class="pill">Пост‑проверка 30–60 мин</div>
-        <div class="pill">Проверка ставки</div>
-      </div>
+      <div class="list" id="focusList"></div>
       <div style="height:12px"></div>
       <div class="two">
-        <input class="field" id="focusInput" placeholder="Добавить пункт в фокус, например: Проверка ставки">
+        <input class="field" id="focusInput" placeholder="Добавить пункт в фокус, например: Проверка креативов">
         <button class="btn" id="addFocusBtn">Добавить в фокус</button>
       </div>
       <div style="height:18px"></div>
-      <p class="section-title">Мини‑ритуал</p>
-      <div class="small">1. Собери РК. 2. Пройди чек‑лист. 3. Зафиксируй ошибки. 4. Посмотри повторяемость и обнови процесс.</div>
+      <p class="section-title">Мини-ритуал</p>
+      <div class="small">1. Собери РК. 2. Пройди чек-лист. 3. Зафиксируй ошибки. 4. Посмотри повторяемость и обнови процесс.</div>
       <div style="height:18px"></div>
       <p class="section-title">Повторяющиеся ошибки</p>
       <div id="topIssues" class="small">Пока пусто</div>
@@ -117,16 +111,15 @@
 
       <section class="card panel">
         <div class="row"><p class="section-title">Интеграция с Google Sheets</p><span class="chip">Боевой режим</span></div>
-        <div>
-          <input class="field" id="appsScriptUrl" placeholder="Вставьте URL Google Apps Script Web App">
-        </div>
+        <input class="field" id="appsScriptUrl" placeholder="Вставьте URL Google Apps Script Web App">
         <div style="height:10px"></div>
         <div class="small">Сайт отправляет 3 массива: launch, mistakes, focus. Вставьте URL опубликованного Apps Script и нажмите кнопку отправки выше.</div>
         <div style="height:10px"></div>
         <div id="syncStatus" class="small">Статус: не настроено</div>
       </section>
+
       <section class="card panel">
-        <div class="row"><p class="section-title">Чек‑лист</p><span class="chip">Отмечай только после фактической проверки</span></div>
+        <div class="row"><p class="section-title">Чек-лист</p><span class="chip">Отмечай только после фактической проверки</span></div>
         <div class="two" style="margin-bottom:12px">
           <select class="select" id="customGroup">
             <option>Подготовка</option><option>Сегменты</option><option>Ссылки и UTM</option><option>Финальный QA</option><option>После запуска</option><option>Мои пункты</option>
@@ -168,6 +161,8 @@
   </div>
 </div>
 <script>
+const STORAGE_KEY = 'campaignQaChecklistState.v2';
+
 const checklistData = [
   {group:'Подготовка',items:[
     'Цель РК и KPI подтверждены',
@@ -190,45 +185,94 @@ const checklistData = [
     'Есть second pair of eyes или самопроверка после паузы 5 минут'
   ]},
   {group:'После запуска',items:[
-    'Через 30–60 минут проверены клики и события',
+    'Через 30-60 минут проверены клики и события',
     'Зафиксированы замечания и аномалии'
   ]}
 ];
-const state={checks:{},errors:[],focus:['Ссылки и UTM','Сегменты и naming','Second pair of eyes','Пост‑проверка 30–60 мин','Проверка ставки'],customGroups:{'Мои пункты':['Проверка ставки']}};
-const checklistEl=document.getElementById('checklist');
-const focusListEl=document.getElementById('focusList');
-function getAllGroups(){ const base = checklistData.map(x=>({group:x.group,items:[...x.items]})); Object.entries(state.customGroups||{}).forEach(([group,items])=>{ const found=base.find(x=>x.group===group); if(found) found.items.push(...items); else base.push({group,items:[...items]}); }); return base; }
+
+const defaultFocus = [
+  'Ссылки и UTM',
+  'Сегменты и naming',
+  'Second pair of eyes',
+  'Пост-проверка 30-60 мин',
+  'Проверка ставки'
+];
+
+const state = {
+  checks: {},
+  errors: [],
+  focus: [...defaultFocus],
+  customGroups: {'Мои пункты': [...defaultFocus]}
+};
+
+const checklistEl = document.getElementById('checklist');
+const focusListEl = document.getElementById('focusList');
+
+function normalizeText(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function uniqueByText(items) {
+  const seen = new Set();
+  const result = [];
+  (items || []).forEach(item => {
+    const text = String(item || '').trim();
+    const key = normalizeText(text);
+    if (!text || seen.has(key)) return;
+    seen.add(key);
+    result.push(text);
+  });
+  return result;
+}
+
+function syncMyItemsWithFocus() {
+  if (!state.customGroups) state.customGroups = {};
+  state.focus = uniqueByText(state.focus || []);
+  state.customGroups['Мои пункты'] = [...state.focus];
+}
+
+function getAllGroups() {
+  syncMyItemsWithFocus();
+  const base = checklistData.map(x => ({group:x.group, items:[...x.items]}));
+  Object.entries(state.customGroups || {}).forEach(([group, items]) => {
+    const cleanItems = uniqueByText(items);
+    const found = base.find(x => x.group === group);
+    if (found) found.items.push(...cleanItems);
+    else base.push({group, items:cleanItems});
+  });
+  return base;
+}
+
+function validCheckKeys(groups) {
+  const keys = new Set();
+  groups.forEach((g, gi) => g.items.forEach((_, ii) => keys.add(`${gi}-${ii}`)));
+  return keys;
+}
+
+function cleanInvalidChecks(groups) {
+  const keys = validCheckKeys(groups);
+  Object.keys(state.checks || {}).forEach(key => {
+    if (!keys.has(key)) delete state.checks[key];
+  });
+}
+
 function renderFocus() {
+  syncMyItemsWithFocus();
   focusListEl.innerHTML = '';
 
   (state.focus || []).forEach((item, idx) => {
     const d = document.createElement('div');
     d.className = 'pill';
-    d.innerHTML = `${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">×</button>`;
+    d.innerHTML = `${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">x</button>`;
     focusListEl.appendChild(d);
   });
 
-  focusListEl.querySelectorAll('[data-rmf]').forEach(b => {
-    b.onclick = () => {
-      const removedItem = state.focus[+b.dataset.rmf];
-      const normalizedRemovedItem = String(removedItem).trim().toLowerCase();
-
-      state.focus = state.focus.filter(item => {
-        return String(item).trim().toLowerCase() !== normalizedRemovedItem;
-      });
-
-      if (!state.customGroups) {
-        state.customGroups = {};
-      }
-
-      if (!state.customGroups['Мои пункты']) {
-        state.customGroups['Мои пункты'] = [];
-      }
-
-      state.customGroups['Мои пункты'] = state.customGroups['Мои пункты'].filter(item => {
-        return String(item).trim().toLowerCase() !== normalizedRemovedItem;
-      });
-
+  focusListEl.querySelectorAll('[data-rmf]').forEach(button => {
+    button.onclick = () => {
+      const removedItem = state.focus[Number(button.dataset.rmf)];
+      const removedKey = normalizeText(removedItem);
+      state.focus = (state.focus || []).filter(item => normalizeText(item) !== removedKey);
+      syncMyItemsWithFocus();
       save();
       renderFocus();
       renderChecklist();
@@ -237,36 +281,141 @@ function renderFocus() {
   });
 }
 
-function renderChecklist(){checklistEl.innerHTML=''; getAllGroups().forEach((g,gi)=>{const wrap=document.createElement('div'); wrap.className='group'; wrap.innerHTML=`<h3>${g.group}</h3><div class="stack"></div>`; const stack=wrap.querySelector('.stack'); g.items.forEach((text,ii)=>{const key=`${gi}-${ii}`; const row=document.createElement('label'); row.className='check'+(state.checks[key]?' done':''); row.innerHTML=`<input type="checkbox" ${state.checks[key]?'checked':''} data-key="${key}"><div><strong>${text}</strong><div class="small">Подтверждаю только после реальной проверки.</div></div><span class="chip">must</span>`; stack.appendChild(row);}); checklistEl.appendChild(wrap);});
-  checklistEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',e=>{state.checks[e.target.dataset.key]=e.target.checked; save(); renderChecklist(); updateDashboard();}));}
+function renderChecklist() {
+  const groups = getAllGroups();
+  cleanInvalidChecks(groups);
+  checklistEl.innerHTML = '';
 
-function addError(item){state.errors.unshift(item); save(); renderErrors(); updateDashboard();}
-function renderErrors(){const el=document.getElementById('errorsList'); if(!state.errors.length){el.innerHTML='<div class="small">Пока ошибок нет. Это место важно: даже мелкие промахи сюда, чтобы потом увидеть паттерн.</div>'; return;} el.innerHTML=''; state.errors.forEach((e,idx)=>{const d=document.createElement('div'); d.className='error-item'; d.innerHTML=`<div class="row"><strong>${e.type}</strong><span class="chip">${e.stage}</span></div><div class="small ${e.severity==='Высокая'?'danger':e.severity==='Средняя'?'warn':'ok'}">Серьёзность: ${e.severity}</div><p>${e.desc}</p><div class="small">Причина: ${e.root||'—'}</div><div class="small">Коррекция процесса: ${e.fix||'—'}</div><div style="height:8px"></div><button class="btn ghost" data-del="${idx}">Удалить</button>`; el.appendChild(d);}); el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{state.errors.splice(+b.dataset.del,1); save(); renderErrors(); updateDashboard();});}
-function updateDashboard(){const total=getAllGroups().reduce((s,g)=>s+g.items.length,0); const done=Object.values(state.checks).filter(Boolean).length; const pct=Math.round(done/total*100)||0; document.getElementById('progressNum').textContent=pct+'%'; document.getElementById('progressBar').style.width=pct+'%'; document.getElementById('mistakesNum').textContent=state.errors.length; let risk='Низкий'; if(state.errors.some(e=>e.severity==='Высокая')) risk='Высокий'; else if(state.errors.length>=2) risk='Средний'; document.getElementById('riskNum').textContent=risk; const freq={}; state.errors.forEach(e=>freq[e.type]=(freq[e.type]||0)+1); const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3); document.getElementById('topIssues').innerHTML=top.length?top.map(([k,v])=>`<div>${k}: ${v}</div>`).join(''):'Пока пусто';}
-function save(){const payload={state,campaignName:campaignName.value,segmentName:segmentName.value,landingUrl:landingUrl.value,appsScriptUrl:appsScriptUrl?.value||''}; window.__appData=payload;}
-function load(){if(window.__seedLoaded) return; renderFocus(); renderChecklist(); renderErrors(); updateDashboard();}
+  groups.forEach((g, gi) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'group';
+    wrap.innerHTML = `<h3>${g.group}</h3><div class="stack"></div>`;
+    const stack = wrap.querySelector('.stack');
+
+    g.items.forEach((text, ii) => {
+      const key = `${gi}-${ii}`;
+      const row = document.createElement('label');
+      row.className = 'check' + (state.checks[key] ? ' done' : '');
+      row.innerHTML = `<input type="checkbox" ${state.checks[key] ? 'checked' : ''} data-key="${key}"><div><strong>${text}</strong><div class="small">Подтверждаю только после реальной проверки.</div></div><span class="chip">must</span>`;
+      stack.appendChild(row);
+    });
+
+    checklistEl.appendChild(wrap);
+  });
+
+  checklistEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', e => {
+      state.checks[e.target.dataset.key] = e.target.checked;
+      save();
+      renderChecklist();
+      updateDashboard();
+    });
+  });
+}
+
+function addError(item) {
+  state.errors.unshift(item);
+  save();
+  renderErrors();
+  updateDashboard();
+}
+
+function renderErrors() {
+  const el = document.getElementById('errorsList');
+  if (!state.errors.length) {
+    el.innerHTML = '<div class="small">Пока ошибок нет. Это место важно: даже мелкие промахи сюда, чтобы потом увидеть паттерн.</div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  state.errors.forEach((e, idx) => {
+    const d = document.createElement('div');
+    d.className = 'error-item';
+    d.innerHTML = `<div class="row"><strong>${e.type}</strong><span class="chip">${e.stage}</span></div><div class="small ${e.severity === 'Высокая' ? 'danger' : e.severity === 'Средняя' ? 'warn' : 'ok'}">Серьезность: ${e.severity}</div><p>${e.desc}</p><div class="small">Причина: ${e.root || '-'}</div><div class="small">Коррекция процесса: ${e.fix || '-'}</div><div style="height:8px"></div><button class="btn ghost" data-del="${idx}">Удалить</button>`;
+    el.appendChild(d);
+  });
+
+  el.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = () => {
+      state.errors.splice(Number(b.dataset.del), 1);
+      save();
+      renderErrors();
+      updateDashboard();
+    };
+  });
+}
+
+function updateDashboard() {
+  const groups = getAllGroups();
+  cleanInvalidChecks(groups);
+  const validKeys = validCheckKeys(groups);
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
+  const done = Object.entries(state.checks || {}).filter(([key, value]) => validKeys.has(key) && value).length;
+  const pct = Math.round(done / total * 100) || 0;
+
+  document.getElementById('progressNum').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('mistakesNum').textContent = state.errors.length;
+
+  let risk = 'Низкий';
+  if (state.errors.some(e => e.severity === 'Высокая')) risk = 'Высокий';
+  else if (state.errors.length >= 2) risk = 'Средний';
+  document.getElementById('riskNum').textContent = risk;
+
+  const freq = {};
+  state.errors.forEach(e => freq[e.type] = (freq[e.type] || 0) + 1);
+  const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  document.getElementById('topIssues').innerHTML = top.length ? top.map(([k, v]) => `<div>${k}: ${v}</div>`).join('') : 'Пока пусто';
+}
+
+function save() {
+  syncMyItemsWithFocus();
+  const payload = {
+    state,
+    campaignName: campaignName.value,
+    segmentName: segmentName.value,
+    landingUrl: landingUrl.value,
+    appsScriptUrl: appsScriptUrl.value || ''
+  };
+  window.__appData = payload;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Не удалось сохранить данные локально', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!saved) return;
+
+    Object.assign(state, saved.state || {});
+    campaignName.value = saved.campaignName || '';
+    segmentName.value = saved.segmentName || '';
+    landingUrl.value = saved.landingUrl || '';
+    appsScriptUrl.value = saved.appsScriptUrl || '';
+    syncMyItemsWithFocus();
+  } catch (e) {
+    console.warn('Не удалось загрузить сохраненные данные', e);
+  }
+}
+
+function load() {
+  loadFromStorage();
+  renderFocus();
+  renderChecklist();
+  renderErrors();
+  updateDashboard();
+}
 
 addFocusBtn.onclick = () => {
   const v = focusInput.value.trim();
   if (!v) return;
 
-  const normalizedValue = v.toLowerCase();
-
-  if (!state.focus.some(item => String(item).trim().toLowerCase() === normalizedValue)) {
-    state.focus.push(v);
-  }
-
-  if (!state.customGroups) {
-    state.customGroups = {};
-  }
-
-  if (!state.customGroups['Мои пункты']) {
-    state.customGroups['Мои пункты'] = [];
-  }
-
-  if (!state.customGroups['Мои пункты'].some(item => String(item).trim().toLowerCase() === normalizedValue)) {
-    state.customGroups['Мои пункты'].push(v);
-  }
+  state.focus.push(v);
+  state.focus = uniqueByText(state.focus);
+  syncMyItemsWithFocus();
 
   focusInput.value = '';
   save();
@@ -275,62 +424,95 @@ addFocusBtn.onclick = () => {
   updateDashboard();
 };
 
-  if (!state.customGroups['Мои пункты']) {
-    state.customGroups['Мои пункты'] = [];
+addCustomItemBtn.onclick = () => {
+  const text = customItemText.value.trim();
+  const group = customGroup.value;
+  if (!text) return;
+
+  if (group === 'Мои пункты') {
+    state.focus.push(text);
+    state.focus = uniqueByText(state.focus);
+    syncMyItemsWithFocus();
+  } else {
+    if (!state.customGroups) state.customGroups = {};
+    if (!state.customGroups[group]) state.customGroups[group] = [];
+    state.customGroups[group].push(text);
+    state.customGroups[group] = uniqueByText(state.customGroups[group]);
   }
 
-  if (!state.customGroups['Мои пункты'].includes(v)) {
-    state.customGroups['Мои пункты'].push(v);
-  }
-
-  focusInput.value = '';
+  customItemText.value = '';
   save();
-  function renderFocus() {
-  focusListEl.innerHTML = '';
-
-  (state.focus || []).forEach((item, idx) => {
-    const d = document.createElement('div');
-    d.className = 'pill';
-    d.innerHTML = `${item} <button class="btn ghost" data-rmf="${idx}" style="padding:0 0 0 4px;border:none">×</button>`;
-    focusListEl.appendChild(d);
-  });
-
-  focusListEl.querySelectorAll('[data-rmf]').forEach(b => {
-    b.onclick = () => {
-      const removedItem = state.focus[+b.dataset.rmf];
-
-      state.focus.splice(+b.dataset.rmf, 1);
-
-      if (state.customGroups && state.customGroups['Мои пункты']) {
-        state.customGroups['Мои пункты'] = state.customGroups['Мои пункты'].filter(item => item !== removedItem);
-      }
-
-      save();
-      renderFocus();
-      renderChecklist();
-      updateDashboard();
-    };
-  });
-}
+  renderFocus();
   renderChecklist();
   updateDashboard();
 };
-addCustomItemBtn.onclick=()=>{const text=customItemText.value.trim(); const group=customGroup.value; if(!text) return; if(!state.customGroups[group]) state.customGroups[group]=[]; state.customGroups[group].push(text); customItemText.value=''; save(); renderChecklist(); updateDashboard();};
-addErrorBtn.onclick=()=>{const item={type:errType.value,stage:errStage.value,severity:errSeverity.value,root:errRoot.value.trim(),desc:errDesc.value.trim(),fix:errFix.value.trim()}; if(!item.desc){alert('Опиши ошибку'); return;} addError(item); errDesc.value=''; errFix.value=''; errRoot.value='';};
-seedBtn.onclick=()=>{campaignName.value='Meta | ретаргет корзина | -10% | видео'; segmentName.value='retarget_cart_7d'; landingUrl.value='https://example.com/sale'; state.checks={'0-0':true,'0-1':true,'1-0':true,'2-0':true}; state.errors=[{type:'Ссылка',stage:'До запуска',severity:'Высокая',root:'Скопировала URL из прошлой РК',desc:'Вела на старую посадочную страницу',fix:'Добавить обязательный клик‑тест ссылки перед запуском'},{type:'Сегмент',stage:'До запуска',severity:'Средняя',root:'Похожие названия групп',desc:'Перепутала сегменты с похожим форматом',fix:'Жёсткий naming: канал | сегмент | оффер | формат'}]; renderFocus(); renderChecklist(); renderErrors(); updateDashboard();};
-themeBtn.onclick=()=>{document.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark')};
-exportBtn.onclick=()=>{save(); const blob=new Blob([JSON.stringify(window.__appData,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='campaign-qa-log.json'; a.click(); URL.revokeObjectURL(a.href);};
 
-function buildPayload(){
+addErrorBtn.onclick = () => {
+  const item = {
+    type: errType.value,
+    stage: errStage.value,
+    severity: errSeverity.value,
+    root: errRoot.value.trim(),
+    desc: errDesc.value.trim(),
+    fix: errFix.value.trim()
+  };
+  if (!item.desc) {
+    alert('Опиши ошибку');
+    return;
+  }
+  addError(item);
+  errDesc.value = '';
+  errFix.value = '';
+  errRoot.value = '';
+};
+
+seedBtn.onclick = () => {
+  campaignName.value = 'Meta | ретаргет корзина | -10% | видео';
+  segmentName.value = 'retarget_cart_7d';
+  landingUrl.value = 'https://example.com/sale';
+  state.checks = {'0-0':true,'0-1':true,'1-0':true,'2-0':true};
+  state.errors = [
+    {type:'Ссылка',stage:'До запуска',severity:'Высокая',root:'Скопировала URL из прошлой РК',desc:'Вела на старую посадочную страницу',fix:'Добавить обязательный клик-тест ссылки перед запуском'},
+    {type:'Сегмент',stage:'До запуска',severity:'Средняя',root:'Похожие названия групп',desc:'Перепутала сегменты с похожим форматом',fix:'Жесткий naming: канал | сегмент | оффер | формат'}
+  ];
+  state.focus = [...defaultFocus];
+  syncMyItemsWithFocus();
+  save();
+  renderFocus();
+  renderChecklist();
+  renderErrors();
+  updateDashboard();
+};
+
+themeBtn.onclick = () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+};
+
+exportBtn.onclick = () => {
+  save();
+  const blob = new Blob([JSON.stringify(window.__appData, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'campaign-qa-log.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+function buildPayload() {
   save();
   const now = new Date().toISOString();
   const groups = getAllGroups();
-  const total = groups.reduce((s,g)=>s+g.items.length,0);
-  const done = Object.values(state.checks).filter(Boolean).length;
-  const progress = Math.round(done/total*100)||0;
-  let risk='Низкий';
-  if(state.errors.some(e=>e.severity==='Высокая')) risk='Высокий'; else if(state.errors.length>=2) risk='Средний';
-  const launch=[{
+  const validKeys = validCheckKeys(groups);
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
+  const done = Object.entries(state.checks || {}).filter(([key, value]) => validKeys.has(key) && value).length;
+  const progress = Math.round(done / total * 100) || 0;
+
+  let risk = 'Низкий';
+  if (state.errors.some(e => e.severity === 'Высокая')) risk = 'Высокий';
+  else if (state.errors.length >= 2) risk = 'Средний';
+
+  const launch = [{
     created_at: now,
     campaign_name: campaignName.value || '',
     segment_name: segmentName.value || '',
@@ -339,6 +521,7 @@ function buildPayload(){
     mistakes_count: state.errors.length,
     risk_level: risk
   }];
+
   const mistakes = state.errors.map(e => ({
     created_at: now,
     campaign_name: campaignName.value || '',
@@ -349,13 +532,16 @@ function buildPayload(){
     description: e.desc || '',
     process_fix: e.fix || ''
   }));
+
   const focus = (state.focus || []).map(item => ({
     created_at: now,
     campaign_name: campaignName.value || '',
     focus_item: item
   }));
+
   return {launch, mistakes, focus};
 }
+
 function syncToSheets() {
   const url = (appsScriptUrl.value || '').trim();
 
@@ -364,7 +550,7 @@ function syncToSheets() {
     return;
   }
 
-  syncStatus.textContent = 'Статус: отправка…';
+  syncStatus.textContent = 'Статус: отправка...';
 
   try {
     const payload = encodeURIComponent(JSON.stringify(buildPayload()));
@@ -377,16 +563,17 @@ function syncToSheets() {
     document.body.appendChild(iframe);
 
     setTimeout(function() {
-      document.body.removeChild(iframe);
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
     }, 5000);
 
-    syncStatus.textContent = 'Статус: отправлено — проверьте строки в Google Таблице';
+    syncStatus.textContent = 'Статус: отправлено - проверьте строки в Google Таблице';
   } catch (e) {
     syncStatus.textContent = 'Статус: ошибка подготовки данных';
     console.error(e);
   }
 }
-syncBtn.onclick=syncToSheets;
+
+syncBtn.onclick = syncToSheets;
 load();
 </script>
 </body>
